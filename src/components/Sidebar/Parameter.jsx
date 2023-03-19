@@ -1,9 +1,9 @@
-import { Box, Button, ButtonGroup, Checkbox, Flex, HStack, IconButton, Input, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper, Tag, TagCloseButton, TagLabel, TagRightIcon, Text } from '@chakra-ui/react';
+import { Box, Button, ButtonGroup, Checkbox, Flex, HStack, IconButton, Input, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper, Tag, TagCloseButton, TagLabel, TagRightIcon, Text, useColorModeValue } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { SmallCloseIcon, ViewIcon, ViewOffIcon, AddIcon, CheckIcon } from '@chakra-ui/icons';
 
 export default function Parameter({ parameter, updateParameter, removeParameter }) {
-
+  const gray = useColorModeValue("gray.800", "gray.200");
   const { name, type, value, active } = parameter;
   console.log('value: ', value);
 
@@ -82,7 +82,7 @@ export default function Parameter({ parameter, updateParameter, removeParameter 
        {isAdding ? 
         <Tag>
           <Input autoFocus size="sm" variant="filled" onChange={e => setNewElement(e.target.value)} onKeyDown={handleNewKeyDown}/>
-          <TagRightIcon cursor="pointer" opacity="0.5" color="gray.800" as={CheckIcon} _hover={{ opacity: 1 }} onClick={addNewElement}/>
+          <TagRightIcon cursor="pointer" opacity="0.5" color={gray} as={CheckIcon} _hover={{ opacity: 1 }} onClick={addNewElement}/>
           <TagCloseButton onClick={() => setIsAdding(false)} />
         </Tag> : 
         <IconButton size="sm" variant="ghost" icon={<AddIcon />} onClick={() => setIsAdding(true)} /> }

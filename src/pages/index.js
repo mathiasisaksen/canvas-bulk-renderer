@@ -20,7 +20,3 @@ export default function Home() {
     </Flex>
   )
 }
-
-/*export function getServerSideProps() {
-
-}*/

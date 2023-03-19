@@ -10,17 +10,6 @@ const defaultParams = [
   { name: "Warp", value: 0.1, type: "number", active: true },
   { name: "HasBg", value: true, type: "boolean", active: true },
   { name: "Threshold", value: [0.2, 0.6], type: "range", active: true },
-  { name: "Threshold1", value: [0.2, 0.6], type: "range", active: true },
-  { name: "Threshold2", value: [0.2, 0.6], type: "range", active: true },
-  { name: "Threshold3", value: [0.2, 0.6], type: "range", active: true },
-  { name: "Threshold4", value: [0.2, 0.6], type: "range", active: true },
-  { name: "Threshold5", value: [0.2, 0.6], type: "range", active: true },
-  { name: "Threshold6", value: [0.2, 0.6], type: "range", active: true },
-  /*{ name: "Threshold", value: [0.2, 0.6], type: "range", active: true },
-  { name: "Threshold", value: [0.2, 0.6], type: "range", active: true },
-  { name: "Threshold", value: [0.2, 0.6], type: "range", active: true },
-  { name: "Threshold", value: [0.2, 0.6], type: "range", active: true },
-  { name: "Threshold", value: [0.2, 0.6], type: "range", active: true },*/
   { 
     name: "Palette", 
     value: [

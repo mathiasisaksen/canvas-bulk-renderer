@@ -11,6 +11,8 @@ export default function ConfigPanel() {
         <Input w="100%" placeholder='20'></Input>
         <Text>Thumbnail resolution</Text>
         <Input w="100%" placeholder='450'></Input>
+        <Text>Canvas CSS selector</Text>
+        <Input w="100%" placeholder='canvas'></Input>
       </VStack>
     </Flex>
   )
