@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     return c.toDataURL();
   });
 
-  let base64String = dataUrl.substr(dataUrl.indexOf(",") + 1);
+  let base64String = dataUrl.slice(dataUrl.indexOf(",") + 1);
 
   const parameters = await page.evaluate(() => window.p);
   const features = await page.evaluate(() => window.features);

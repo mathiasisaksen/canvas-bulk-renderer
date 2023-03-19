@@ -1,4 +1,4 @@
-import { Box, Skeleton } from '@chakra-ui/react';
+import { Box, Skeleton, Text } from '@chakra-ui/react';
 import axios from 'axios';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react'
@@ -25,6 +25,7 @@ export default function RenderBox({ seed }) {
           alt=""
         ></Image>
       </Skeleton>
+      
     </Box>
 
   )
