@@ -3,7 +3,7 @@ import { ConcurrencyManager } from 'axios-concurrency';
 
 const api = axios.create();
 
-const manager = ConcurrencyManager(api, 4);
+//const manager = ConcurrencyManager(api, 20);
 
 export default api;
 

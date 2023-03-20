@@ -4,6 +4,7 @@ import Parameter from '@/components/Sidebar/Parameter';
 import { Button, Divider, Flex, Modal, ModalContent, ModalOverlay, VStack } from '@chakra-ui/react'
 import React, { useState } from 'react'
 import { AddIcon, PlusSquareIcon } from '@chakra-ui/icons';
+import { useGlobalState } from '@/context/GlobalProvider';
 
 const defaultParams = [
   //{ name: "Texture", value: "Grit", type: "string", active: true },
@@ -25,7 +26,7 @@ const defaultParams = [
 
 export default function ParameterPanel() {
   const [showAddModal, setShowAddModal] = useState(false);
-  const [parameters, setParameters] = useState(defaultParams);
+  const [parameters, setParameters] = useGlobalState("parameterPanelData", []);
 
   function updateParameter(value, index) {
     setParameters(parameters.map((v, i) => i === index ? value : v));

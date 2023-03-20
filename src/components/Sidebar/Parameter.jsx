@@ -1,4 +1,4 @@
-import { Box, Button, ButtonGroup, Checkbox, Flex, HStack, IconButton, Input, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper, Tag, TagCloseButton, TagLabel, TagRightIcon, Text, useColorModeValue } from '@chakra-ui/react';
+import { Box, Button, ButtonGroup, Checkbox, Flex, FormControl, FormLabel, HStack, IconButton, Input, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper, Tag, TagCloseButton, TagLabel, TagRightIcon, Text, useColorModeValue } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { SmallCloseIcon, ViewIcon, ViewOffIcon, AddIcon, CheckIcon } from '@chakra-ui/icons';
 
@@ -29,8 +29,8 @@ export default function Parameter({ parameter, updateParameter, removeParameter 
     </NumberInput>
   } else if (type === "boolean") {
     inputElements = <ButtonGroup isAttached flex={1}>
-      <Button flex={1} colorScheme={value ? "teal" : null} onClick={() => updateValue(true)}>True</Button>
-      <Button flex={1} colorScheme={!value ? "pink" : null} onClick={() => updateValue(false)}>False</Button>
+      <Button flex={1} colorScheme={value ? "teal" : "gray"} onClick={() => updateValue(true)}>True</Button>
+      <Button flex={1} colorScheme={!value ? "pink" : "gray"} onClick={() => updateValue(false)}>False</Button>
     </ButtonGroup>
   } else if (type === "range") {
     inputElements = <HStack>
@@ -46,7 +46,7 @@ export default function Parameter({ parameter, updateParameter, removeParameter 
     <HStack w="100%" opacity={active ? 1 : 0.5}>
       <Text mr={2} as="b">{name}</Text>
       <Flex flex={1} justify="flex-end">{inputElements}</Flex>
-      <IconButton variant="ghost" icon={active ? <ViewOffIcon /> : <ViewIcon />} isChecked={active} onClick={toggleActive} />
+      <IconButton variant="ghost" icon={active ? <ViewOffIcon /> : <ViewIcon />} onClick={toggleActive} />
       <IconButton variant="ghost" icon={<SmallCloseIcon />} onClick={removeParameter} />
     </HStack>
   )
@@ -56,9 +56,7 @@ export default function Parameter({ parameter, updateParameter, removeParameter 
     const [isAdding, setIsAdding] = useState(false);
 
     function handleNewKeyDown(e) {
-      if (e.key === "Enter") {
-        addNewElement();
-      }
+      if (e.key === "Enter") addNewElement();
     }
 
     function addNewElement() {
@@ -72,21 +70,21 @@ export default function Parameter({ parameter, updateParameter, removeParameter 
 
     return (
       <Flex flex={1} direction="row" wrap="wrap" gap={2} justify={value.length > 0 ? "flex-start" : "flex-end"}>
-          {value.map(({ elementValue, active }, i) => 
-            <Tag size="lg" opacity={active ? 1 : 0.5} key={elementValue}>
-              <TagLabel userSelect="none" cursor="pointer" onClick={() => toggleElementActive(i)}>{elementValue}</TagLabel>
-              <TagCloseButton onClick={() => updateValue(value.filter((_, j) => i !== j))}/>
-            </Tag>
-          )
+        {value.map(({ elementValue, active }, i) =>
+          <Tag size="lg" opacity={active ? 1 : 0.5} key={elementValue}>
+            <TagLabel userSelect="none" cursor="pointer" onClick={() => toggleElementActive(i)}>{elementValue}</TagLabel>
+            <TagCloseButton onClick={() => updateValue(value.filter((_, j) => i !== j))} />
+          </Tag>
+        )
         }
-       {isAdding ? 
-        <Tag>
-          <Input autoFocus size="sm" variant="filled" onChange={e => setNewElement(e.target.value)} onKeyDown={handleNewKeyDown}/>
-          <TagRightIcon cursor="pointer" opacity="0.5" color={gray} as={CheckIcon} _hover={{ opacity: 1 }} onClick={addNewElement}/>
-          <TagCloseButton onClick={() => setIsAdding(false)} />
-        </Tag> : 
-        <IconButton size="sm" variant="ghost" icon={<AddIcon />} onClick={() => setIsAdding(true)} /> }
-       
+        {isAdding ?
+          <Tag>
+            <Input autoFocus size="sm" variant="filled" onChange={e => setNewElement(e.target.value)} onKeyDown={handleNewKeyDown} />
+            <TagRightIcon cursor="pointer" opacity="0.5" color={gray} as={CheckIcon} _hover={{ opacity: 1 }} onClick={addNewElement} />
+            <TagCloseButton onClick={() => setIsAdding(false)} />
+          </Tag> :
+          <IconButton size="sm" variant="ghost" icon={<AddIcon />} onClick={() => setIsAdding(true)} />}
+
       </Flex>
 
     )

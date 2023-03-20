@@ -8,7 +8,6 @@ import ParameterPanel from '@/components/Sidebar/ParameterPanel';
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(true);
   const { colorMode, toggleColorMode } = useColorMode();
-  console.log('colorMode: ', colorMode);
 
   return (
     <VStack px="4" pt="10" overflow="hidden" maxH="100vh">

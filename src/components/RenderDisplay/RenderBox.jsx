@@ -10,8 +10,13 @@ export default function RenderBox({ seed }) {
   useEffect(() => {
     async function fetchRender() {
       const start = performance.now();
-      let { data } = await api.get(`/api/render/${seed}`);
+
+      const postData = { resolution: 450, canvasSelector: "canvas", baseUrl: "http://localhost:8764" };
+
+      let { data } = await api.post(`/api/render/${seed}?`, postData);
+      
       console.log('Time: ', performance.now() - start);
+      
       setData(data);
     }
     fetchRender();
