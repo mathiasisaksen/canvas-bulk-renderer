@@ -1,11 +1,13 @@
 
-const defaults = {
+export const defaultConfig = {
   url: "http://localhost:8080",
   rendersPerPage: 20,
   thumbRes: 450,
   canvasSelector: "canvas",
-  numRenderInstances: 3,
+  numRenderInstances: 4,
   prerenderPages: 1,
 }
 
-export default defaults;
+export const defaultUI = {
+  gridColumns: 4
+}

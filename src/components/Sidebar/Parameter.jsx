@@ -17,7 +17,7 @@ export default function Parameter({ parameter, updateParameter, removeParameter 
   let inputElements;
 
   if (type === "string") {
-    inputElements = <Input variant="filled" placeholder='Value' value={value} onChange={e => updateValue(e.target.value)} />
+    inputElements = <Input variant="filled" placeholder='Value' value={value} onChange={e => updateValue(Number(e.target.value))} />
   } else if (type === "number") {
     inputElements = <NumberInput variant="filled" value={value} onChange={updateValue}>
       <NumberInputField />
@@ -28,14 +28,14 @@ export default function Parameter({ parameter, updateParameter, removeParameter 
     </NumberInput>
   } else if (type === "boolean") {
     inputElements = <ButtonGroup isAttached flex={1}>
-      <Button flex={1} colorScheme={value ? "teal" : "gray"} onClick={() => updateValue(true)}>True</Button>
-      <Button flex={1} colorScheme={!value ? "pink" : "gray"} onClick={() => updateValue(false)}>False</Button>
+      <Button variant={value ? "solid" : "outline"} flex={1} colorScheme={value ? "teal" : "gray"} onClick={() => updateValue(true)}>True</Button>
+      <Button variant={!value ? "solid" : "outline"} flex={1} colorScheme={!value ? "pink" : "gray"} onClick={() => updateValue(false)}>False</Button>
     </ButtonGroup>
   } else if (type === "range") {
     inputElements = <HStack>
-      <Input variant="filled" placeholder='lower' value={value[0]} onChange={(e) => updateValue([e.target.value, value[1]])} />
+      <Input variant="filled" placeholder='lower' value={value[0]} onChange={(e) => updateValue([parseFloat(e.target.value), value[1]])} />
       <Text>–</Text>
-      <Input variant="filled" placeholder='upper' value={value[1]} onChange={(e) => updateValue([value[0], e.target.value])} />
+      <Input variant="filled" placeholder='upper' value={value[1]} onChange={(e) => updateValue([value[0], Number(e.target.value)])} />
     </HStack>
   } else if (type === "array") {
     inputElements = <ArrayInputField />

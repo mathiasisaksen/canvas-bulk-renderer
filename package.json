@@ -18,11 +18,14 @@
     "eslint": "8.35.0",
     "eslint-config-next": "13.2.3",
     "framer-motion": "^10.0.1",
+    "immer": "^9.0.19",
     "next": "13.2.3",
     "next-connect": "^1.0.0-next.3",
     "puppeteer": "^19.7.5",
     "puppeteer-cluster": "^0.23.0",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "react-icons": "^4.8.0",
+    "zustand": "^4.3.6"
   }
 }

@@ -1,35 +1,33 @@
 import { Flex, HStack, IconButton, Input } from '@chakra-ui/react'
 import React, { useEffect, useState } from 'react'
 import { ArrowBackIcon, ArrowForwardIcon } from '@chakra-ui/icons'
-import { useGlobalState } from '@/context/GlobalProvider'
+import usePageNumber from '@/store/use-page-number'
+import useUI from '@/store/ui-store'
+import { MdArrowLeft, MdArrowRight } from 'react-icons/md'
+import { IoMdArrowDropleft, IoMdArrowDropright } from 'react-icons/io';
 
 export default function Pagination() {
-  const [pageNumber, setPageNumber] = useGlobalState("pageNumber", 1);
+  const [pageNumber, set, increment, decrement] = usePageNumber((state) => [state.pageNumber, state.set, state.increment, state.decrement]);
   const [internalPage, setInternalPage] = useState(pageNumber);
-  const [renderEnabled] = useGlobalState("renderEnabled", false);
-  const [prerenderPages] = useGlobalState("prerenderPages", 1);
-  const [rendersPerPage] = useGlobalState("rendersPerPage", 20);
+  const renderEnabled = useUI((state) => state.renderEnabled);
   
+  const inputWidth = Math.max(4, internalPage.toString().length + 2);
+
   useEffect(() => {
     setInternalPage(pageNumber);
   }, [pageNumber]);
 
-  const width = Math.max(4, internalPage.toString().length + 2);
-
-  async function updateGlobal(value) {
-    setPageNumber(value);
-    setInternalPage(value);
-  }
+  
 
   function handleKeyUp(e) {
-    if (e.key === "Enter") updateGlobal(internalPage);
+    if (e.key === "Enter") set(internalPage);
   }
 
   return (
     <HStack h="5rem">
-      <IconButton isDisabled={!renderEnabled} icon={<ArrowBackIcon />} onClick={() => updateGlobal(pageNumber - 1)}  />
-      <Input isDisabled={!renderEnabled} w={`${width}ch`} type="number" textAlign="center" p={0} value={internalPage} onChange={e => setInternalPage(parseInt(e.target.value))} onBlur={() => updateGlobal(internalPage)} onKeyUp={handleKeyUp} />
-      <IconButton isDisabled={!renderEnabled} icon={<ArrowForwardIcon />} onClick={() => updateGlobal(pageNumber + 1)} />
+      <IconButton variant="outline" isDisabled={!renderEnabled} icon={<IoMdArrowDropleft />} onClick={decrement}  />
+      <Input isDisabled={!renderEnabled} w={`${inputWidth}ch`} type="number" textAlign="center" p={0} value={internalPage} onChange={e => setInternalPage(parseInt(e.target.value))} onBlur={() => set(internalPage)} onKeyUp={handleKeyUp} />
+      <IconButton variant="outline" isDisabled={!renderEnabled} icon={<IoMdArrowDropright />} onClick={increment} />
     </HStack>
   )
 }

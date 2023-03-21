@@ -1,10 +1,10 @@
 
 import AddParameterModal from '@/components/Sidebar/AddParameterModal';
 import Parameter from '@/components/Sidebar/Parameter';
-import { Button, Code, Divider, Flex, Modal, ModalContent, ModalOverlay, Text, useClipboard, VStack } from '@chakra-ui/react'
+import { Button, ButtonGroup, Code, Divider, Flex, IconButton, Modal, ModalContent, ModalOverlay, Text, Tooltip, useClipboard, VStack } from '@chakra-ui/react'
 import React, { useEffect, useState } from 'react'
-import { PlusSquareIcon, CopyIcon, CheckIcon } from '@chakra-ui/icons';
-import { useGlobalState } from '@/context/GlobalProvider';
+import { PlusSquareIcon, CopyIcon, CheckIcon, DeleteIcon } from '@chakra-ui/icons';
+import useParameterPanel from '@/store/parameter-panel-store';
 
 const defaultParams = [
   { name: "Texture", value: "Grit", type: "string", active: true },
@@ -26,29 +26,27 @@ const defaultParams = [
 
 export default function ParameterPanel() {
   const [showAddModal, setShowAddModal] = useState(false);
-  const [parameters, setParameters] = useGlobalState("parameterPanelData", []);
+  // To avoid hydration error
+  const [internalParameters, setInternalParameters] = useState([]);
+  const [parameters, setAll, add, remove, update, clear] = useParameterPanel((state) => [state.parameterPanel, state.setAll, state.add, state.remove, state.update, state.clear]);
+
   const { onCopy, hasCopied } = useClipboard(`const parameters = JSON.parse(decodeURIComponent(new URLSearchParams(window.location.search).get("parameters")))`);
 
-  useEffect(() => setParameters(defaultParams), []);
+  useEffect(() => setInternalParameters(parameters), [parameters]);
 
-  function updateParameter(value, index) {
-    setParameters(parameters.map((v, i) => i === index ? value : v));
-  }
-
-  function addParameter(param) {
-    setParameters([...parameters, { ...param, active: true }]);
-  }
-
-  function removeParameter(index) {
-    setParameters(parameters.filter((_, i) => i !== index));
-  }
+  //useEffect(() => setAll(defaultParams), [setAll]);
 
   return (
     <>
     <VStack gap={4} flex={1} h="100%">
-      <Button leftIcon={<PlusSquareIcon />} w="100%" onClick={() => setShowAddModal(true)}>Add parameter</Button>
+      <ButtonGroup isAttached w="100%" variant="outline">
+        <Button leftIcon={<PlusSquareIcon />} flex={1} onClick={() => setShowAddModal(true)}>Add parameter</Button>
+        <Tooltip label="Clear parameters">
+          <IconButton icon={<DeleteIcon />} onClick={clear} />
+        </Tooltip>
+      </ButtonGroup>
       <VStack flex={1} w="100%" gap={1} divider={<Divider />} overflowY="scroll" sx={{ "::-webkit-scrollbar": { display: "none" } }}>
-        {parameters.map((p, i) => <Parameter key={p.name} parameter={p} updateParameter={value => updateParameter(value, i)}removeParameter={() => removeParameter(i)}></Parameter>)}
+        {internalParameters.map((p, i) => <Parameter key={p.name} parameter={p} updateParameter={value => update(i, value)}removeParameter={() => remove(i)}></Parameter>)}
       </VStack>
       <VStack>
         <Text mt="5" w="100%" textAlign="center" fontSize="sm">(The parameters are passed in the URL query parameter <Code>parameters</Code>.)</Text>
@@ -56,7 +54,7 @@ export default function ParameterPanel() {
       </VStack>
     </VStack>
     
-    <AddParameterModal isOpen={showAddModal} hideModal={() => setShowAddModal(false)} addParameter={addParameter} />
+    <AddParameterModal isOpen={showAddModal} hideModal={() => setShowAddModal(false)} addParameter={add} />
     </>
   )
 }
