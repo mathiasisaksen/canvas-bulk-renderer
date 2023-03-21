@@ -1,59 +1,83 @@
+import hasValue from "@/utils/has-value";
+import mod from "@/utils/mod";
+
 const puppeter = require("puppeteer");
+
+const PUPPETEER_CONFIG = {
+  ignoreDefaultArgs: ["--disable-gpu"],
+  args: ['--enable-webgl', "--use-gl=angle"],
+  headless: true
+};
 
 class RenderHandler {
   constructor() {
     this.isInitialized = false;
   }
 
-  async initialize({ numBrowsers = 3 } = {}) {
+  setParameterData(parameterData) {
+    this.parameterData = parameterData;
+  }
 
+  async initialize(configData) {
+    this.configData = configData;
+
+    const { numRenderInstances } = configData;
+    console.log('numRenderInstances: ', numRenderInstances);
     // Cache for storing data from finished renders
     this.cache = {};
     // Headless puppeteer for rendering
-    this.browsers = await Promise.all(Array(isNaN(numBrowsers) ? 3 : parseInt(numBrowsers)).fill().map(async _ => 
-      await puppeter.launch({
-        ignoreDefaultArgs: ["--disable-gpu"],
-        args: ['--enable-webgl', "--use-gl=angle"]
-    })));
+    this.browsers = await Promise.all(Array(isNaN(numRenderInstances) ? 3 : parseInt(numRenderInstances)).fill().map(async _ => {
+      const browser = await puppeter.launch(PUPPETEER_CONFIG);
+      return await browser.createIncognitoBrowserContext();
+    }));
 
-     
     this.isInitialized = true;
   }
 
   async executeRender(data) {
-    if (!this.isInitialized && process.env.NODE_ENV === "development") await this.initialize({ numBrowsers: 1 });
+    if (!this.isInitialized && process.env.NODE_ENV === "development") await this.initialize({ canvasSelector: "canvas", thumbRes: 450, url: "http://localhost:8080", numRenderInstances: 1 });
 
     const cacheElement = this.cache[data.seed];
     if (cacheElement) return cacheElement;
 
-    const page = await this.browsers[data.seed % this.browsers.length].newPage();
-    let { seed, canvasSelector, resolution, baseUrl } = data;
-
+    let { canvasSelector, thumbRes: resolution, url: baseUrl } = this.configData;
+    let { seed } = data;
+    
+    let time = performance.now();
+    const nInst = this.browsers.length;
+    const page = await this.browsers[mod(seed, nInst)].newPage();
+    console.log("Page: ", performance.now() - time);
     resolution = isNaN(resolution) ? 450 : parseInt(resolution);
 
     page.setViewport({ width: resolution, height: resolution });
 
     const url = new URL(baseUrl);
-    const urlParams = new URLSearchParams({ seed, res: resolution });
+    const urlParams = new URLSearchParams({ seed, resolution });
 
-    url.search = urlParams.toString();
+    url.search = urlParams.toString() + (hasValue(this.parameterData) ? `&parameters=${encodeURIComponent(JSON.stringify(this.parameterData))}` : "");
 
+    time = performance.now();
     await page.goto(url.toString());
+    console.log("Goto: ", performance.now() - time);
 
+    time = performance.now();
     await page.waitForFunction(() => document.complete === true, {
       polling: 50,
       timeout: 0,
     });
+    console.log("Wait for function: ", performance.now() - time);
 
+    time = performance.now();
     const imageData = await page.evaluate((canvasSelector) => {
       let canvas = document.querySelector(canvasSelector ?? "canvas");
       return canvas.toDataURL();
     }, canvasSelector);      
-
+    
     const imageBase64 = imageData.slice(imageData.indexOf(",") + 1);
+    console.log("Image data: ", performance.now() - time);
     const parameters = await page.evaluate(() => window.parameters);
 
-    const renderResult = { image: imageBase64, parameters };
+    const renderResult = { image: imageBase64, parameters, url: `${baseUrl}?seed=${seed}` };
     this.cache[data.seed] = renderResult;
     await page.close();
     return renderResult;

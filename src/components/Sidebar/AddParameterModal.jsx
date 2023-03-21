@@ -4,9 +4,9 @@ import React, { useRef, useState } from 'react'
 
 const defaultValues = {
   string: "",
-  number: null,
+  number: 0,
   boolean: true,
-  range: [null, null],
+  range: [0, 1],
   array: []
 }
 

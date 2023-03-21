@@ -5,7 +5,6 @@ import { SmallCloseIcon, ViewIcon, ViewOffIcon, AddIcon, CheckIcon } from '@chak
 export default function Parameter({ parameter, updateParameter, removeParameter }) {
   const gray = useColorModeValue("gray.800", "gray.200");
   const { name, type, value, active } = parameter;
-  console.log('value: ', value);
 
   function updateValue(newValue) {
     updateParameter({ ...parameter, value: newValue });
