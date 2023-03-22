@@ -1,4 +1,3 @@
-import { defaultConfig } from "@/consts/defaults";
 import api from "@/services/api";
 import renderHandler from "@/services/render-handler-cluster";
 
@@ -9,7 +8,6 @@ const router = createRouter();
 router.post(async (req, res) => {
   let { configData, parameterPanelData } = req.body;
 
-  configData = { ...defaultConfig, ...configData };
   console.log('configData: ', configData);
 
   // Check that specified server is running

@@ -9,30 +9,45 @@ import useConfig from '@/store/config-store';
 import useParameterPanel from '@/store/parameter-panel-store';
 import usePageNumber from '@/store/use-page-number';
 import useUI from '@/store/ui-store';
+import RenderProgress from '@/components/Sidebar/RenderProgress';
+import useRenderData from '@/store/render-data-store';
 
 export default function Sidebar() {
   const toast = useToast();
   const [isOpen, setIsOpen] = useState(true);
   const { colorMode, toggleColorMode } = useColorMode();
   const [renderEnabled, enableRender, disableRender] = useUI((state) => [state.renderEnabled, state.enableRender, state.disableRender]);
+  const setIsRendererIdle = useRenderData((state) => state.setIsRendererIdle);
   const [renderIsInitializing, setRenderIsInitializing] = useState(false);
   const setPageNumber = usePageNumber((state) => state.set);
-  //const pageNumber = usePageNumber((state) => state.);
-  
-  const configData = useConfig((state) => state.config);
+
+  let configData = useConfig((state) => state.getConfig());
   const parameterPanelData = useParameterPanel((state) => state.getProcessedPanelObject());
 
   async function handleStartRender() {
     try {
       setRenderIsInitializing(true);
       await api.post("/api/render/initialize", { configData, parameterPanelData });
+
+      const { renderMode, batchSize, startSeed, prerenderPages, rendersPerPage } = configData;
+      console.log('renderMode: ', renderMode);
+      if (renderMode === "prerender") {
+        await api.post("/api/render/range", { range: [startSeed, startSeed + batchSize - 1] });
+      } else if (renderMode === "continuous") {
+        console.log('[startSeed, startSeed + rendersPerPage*(1 + prerenderPages) - 1]: ', [startSeed, startSeed + rendersPerPage*(1 + prerenderPages) - 1]);
+        await api.post("/api/render/range", { range: [startSeed, startSeed + rendersPerPage*(1 + prerenderPages) - 1] });
+      } else {
+        toast({ title: "Invalid render mode", status: "error" });
+      }
+
       enableRender();
     } catch (error) {
       const title = error.response?.data?.error ?? "Error when initializing render engine";
       toast({ title, status: "error" })
     } finally {
       setRenderIsInitializing(false);
-      
+      setIsRendererIdle(false);
+
     }
   }
 
@@ -43,32 +58,33 @@ export default function Sidebar() {
 
   return (
     <VStack px="4" pt="10" overflow="hidden" maxH="100vh">
-        <Flex w="100%" justify="space-between">
-          <IconButton variant={!isOpen ? "outline" : "solid"} colorScheme="teal" icon={<HamburgerIcon />} onClick={_ => setIsOpen(s => !s)} />
-          {isOpen && 
-            <IconButton icon={colorMode === "dark" ? <SunIcon /> : <MoonIcon />} onClick={toggleColorMode} />
-          }
-        </Flex>
+      <Flex w="100%" justify="space-between">
+        <IconButton variant={!isOpen ? "outline" : "solid"} colorScheme="teal" icon={<HamburgerIcon />} onClick={_ => setIsOpen(s => !s)} />
+        {isOpen &&
+          <IconButton icon={colorMode === "dark" ? <SunIcon /> : <MoonIcon />} onClick={toggleColorMode} />
+        }
+      </Flex>
 
-      {isOpen && 
-      <VStack flex={1} w="26rem" h="auto">
-        <Tabs w="100%" isFitted>
-          <TabList>
-            <Tab>Configuration</Tab>
-            <Tab>Parameters</Tab>
-            <Tab>Display</Tab>
-          </TabList>
-          <TabPanels h="60vh" minH="500px">
-            <TabPanel px="0" h="100%">
-              <ConfigPanel />
-            </TabPanel>
-            <TabPanel px="0" h="100%">
-              <ParameterPanel />
-            </TabPanel>
-          </TabPanels>
-        </Tabs>
-        <Button isLoading={renderIsInitializing} colorScheme={renderEnabled ? "pink" : "teal"} w="100%" mt="5" leftIcon={renderEnabled ? <CloseIcon /> : <StarIcon />} onClick={renderEnabled ? handleStopRender : handleStartRender}>{renderEnabled ? "Stop" : "Render"}</Button>
-      </VStack>}
+      {isOpen &&
+        <Flex flex={1} w="26rem" h="auto" direction="column">
+          <Tabs w="100%" isFitted>
+            <TabList>
+              <Tab>Configuration</Tab>
+              <Tab>Parameters</Tab>
+              <Tab>Display</Tab>
+            </TabList>
+            <TabPanels h="60vh" minH="500px">
+              <TabPanel px="0" h="100%">
+                <ConfigPanel />
+              </TabPanel>
+              <TabPanel px="0" h="100%">
+                <ParameterPanel />
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
+          <Button isLoading={renderIsInitializing} colorScheme={renderEnabled ? "pink" : "teal"} w="100%" mt="2" mb="10" leftIcon={renderEnabled ? <CloseIcon /> : <StarIcon />} onClick={renderEnabled ? handleStopRender : handleStartRender}>{renderEnabled ? "Stop" : "Render"}</Button>
+          <RenderProgress />
+        </Flex>}
     </VStack>
   )
 }

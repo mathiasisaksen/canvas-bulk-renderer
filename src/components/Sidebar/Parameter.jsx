@@ -1,6 +1,7 @@
 import { Box, Button, ButtonGroup, Checkbox, Flex, FormControl, FormLabel, HStack, IconButton, Input, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField, NumberInputStepper, Tag, TagCloseButton, TagLabel, TagRightIcon, Text, useColorModeValue } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { SmallCloseIcon, ViewIcon, ViewOffIcon, AddIcon, CheckIcon } from '@chakra-ui/icons';
+import hasValue from '@/utils/has-value';
 
 export default function Parameter({ parameter, updateParameter, removeParameter }) {
   const gray = useColorModeValue("gray.800", "gray.200");
@@ -55,11 +56,11 @@ export default function Parameter({ parameter, updateParameter, removeParameter 
     const [isAdding, setIsAdding] = useState(false);
 
     function handleNewKeyDown(e) {
-      if (e.key === "Enter") addNewElement();
+      if (e.key === "Enter") addNewElement();    
     }
 
     function addNewElement() {
-      updateValue([...value, { elementValue: newElement, active: true }]);
+      if (hasValue(newElement)) updateValue([...value, { elementValue: newElement, active: true }]);
       setIsAdding(false);
     }
 

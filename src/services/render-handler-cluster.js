@@ -2,6 +2,9 @@ import { defaultConfig } from "@/consts/defaults";
 import hasValue from "@/utils/has-value";
 import mod from "@/utils/mod";
 
+// Move all render logic into separate hooks
+// Any render calls, whether bulk or continuous, triggers a procedure where the state is fetched regularly until finished
+
 import { Cluster } from "puppeteer-cluster";
 
 const CLUSTER_PARAMS = {
@@ -25,20 +28,21 @@ class RenderHandler {
   }
 
   async initialize(configData) {
-    console.log('configData: ', configData);
     this.configData = configData;
-
     this.cache = {};
+    this.renderStateBySeed = {};
+    this.numFinishedRendering = 0;
 
     // Headless puppeteer cluster for rendering
     this.cluster = await Cluster.launch({ ...CLUSTER_PARAMS, maxConcurrency: configData.numRenderInstances });
 
+    // TODO Error handling
     this.cluster.task(async ({ page, data }) => {
       page.setCacheEnabled(false);
       const { configData, parameterData, seed } = data;
       let { canvasSelector, thumbRes: resolution, url: baseUrl } = configData;
     
-      resolution = isNaN(resolution) ? defaultConfig.thumbRes : parseInt(resolution);
+      resolution = parseInt(resolution);
 
       page.setViewport({ width: resolution, height: resolution });
 
@@ -54,11 +58,11 @@ class RenderHandler {
       });
 
       const { width, height, image } = await page.evaluate((canvasSelector) => {
-        const canvas = document.querySelector(canvasSelector ?? defaultConfig.canvasSelector);
+        const canvas = document.querySelector(canvasSelector);
         const { width, height } = canvas;
         return { width, height, image: canvas.toDataURL() };
       }, canvasSelector);      
-      console.log('width: ', width);
+      
       const imageBase64 = image.slice(image.indexOf(",") + 1);
       const parameters = await page.evaluate(() => window.parameters);
 
@@ -71,13 +75,31 @@ class RenderHandler {
 
   async executeRender({ seed }) {
     if (!this.isInitialized) await this.initialize(defaultConfig);
-    const cacheElement = this.cache[seed];
-    if (cacheElement) return cacheElement;
+    if (this.cache[seed] || this.renderStateBySeed[seed]) return;
+
+    this.renderStateBySeed[seed] = "queued";
 
     const { configData, parameterData } = this;
     const renderResult = await this.cluster.execute({ seed, configData, parameterData });
     this.cache[seed] = renderResult;
-    return renderResult;
+    this.renderStateBySeed[seed] = "finished";
+    this.numFinishedRendering += 1;
+  }
+
+  getRenderData({ seed }) {
+    return this.cache[seed];
+  }
+
+  getNumFinishedRendering() {
+    return this.numFinishedRendering;
+  }
+
+  getRenderState() {
+    return this.renderStateBySeed;
+  }
+
+  isIdle() {
+    return !this.cluster || (this.cluster.jobQueue.size() === 0 && this.cluster.workersBusy.length === 0);
   }
 
   async dispose() {

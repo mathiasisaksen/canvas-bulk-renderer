@@ -1,20 +1,22 @@
 import ImageContainer from '@/components/RenderDisplay/RenderBox/ImageContainer';
 import api from '@/services/api';
 import useUI from '@/store/ui-store';
-import { Box, LinkBox, LinkOverlay, Skeleton, Text } from '@chakra-ui/react';
 
 import React, { useEffect, useState } from 'react'
 
-export default function RenderBox({ seed }) {
+export default function RenderBox({ seed, renderState }) {
+  console.log('renderState: ', renderState);
   const [data, setData] = useState();
   const gridColumns = useUI((state) => state.gridColumns);
-  console.log('gridColumns: ', gridColumns);
   let isLoading = !data;
+  const setAspectRatio = useUI((state) => state.setAspectRatio);
 
   useEffect(() => {
+    if (renderState !== "finished") return;
     const abortController = new AbortController();
     const start = performance.now();
-      api.post(`/api/render/${seed}?`, { signal: abortController.signal }).then(({ data }) => {
+      api.get(`/api/render/${seed}?`, { signal: abortController.signal }).then(({ data }) => {
+        setAspectRatio(data.width / data.height);
         setData(data);
         console.log('Time: ', performance.now() - start);
     });
@@ -23,7 +25,7 @@ export default function RenderBox({ seed }) {
       abortController.abort();
     }
 
-  }, [seed]);
+  }, [seed, renderState, setAspectRatio]);
 
   return (
     <ImageContainer seed={seed} isLoading={isLoading} data={data} gridColumns={gridColumns} />

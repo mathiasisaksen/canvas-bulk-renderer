@@ -6,6 +6,9 @@ export const defaultConfig = {
   canvasSelector: "canvas",
   numRenderInstances: 4,
   prerenderPages: 1,
+  batchSize: 200,
+  renderMode: "prerender",
+  startSeed: 0
 }
 
 export const defaultUI = {

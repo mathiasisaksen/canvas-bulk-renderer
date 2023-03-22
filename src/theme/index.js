@@ -5,7 +5,7 @@ const theme = extendTheme({
   styles: {
     global: props => ({
       body: {
-        background: mode("linear-gradient(180deg,#fafafa,#F7FAFC)", "linear-gradient(180deg, #171923,#1A202C)")(props)
+        background: mode("linear-gradient(180deg,#fafafa,#F7FAFC)", "linear-gradient(180deg, #0f1216,#04080c)")(props)
       }
     })
   }

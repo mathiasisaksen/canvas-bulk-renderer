@@ -11,13 +11,12 @@ router.post(async (req, res) => {
 
   const arr = [];
   for (let i = lower; i <= upper; i++) {
-    console.log('i: ', i);
     arr.push(renderHandler.executeRender({ seed: i }));
   }
 
   
-  await Promise.all(arr);
   res.status(202).send();
+  await Promise.all(arr);
 });
 
 export default router.handler();

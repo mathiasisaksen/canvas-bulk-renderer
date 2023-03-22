@@ -1,5 +1,5 @@
 
-import { Button, FormControl, FormLabel, HStack, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Radio, RadioGroup, VStack } from '@chakra-ui/react'
+import { Button, FormControl, FormErrorMessage, FormLabel, HStack, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Radio, RadioGroup, VStack } from '@chakra-ui/react'
 import React, { useRef, useState } from 'react'
 
 const defaultValues = {
@@ -14,8 +14,13 @@ export default function AddParameterModal({ isOpen, hideModal, addParameter }) {
   const [name, setName] = useState("");
   const [type, setType] = useState("string");
   const initialRef = useRef(null);
+  const [hasError, setHasError] = useState(false);
 
   function handleAdd() {
+    if (name === "") { // TODO Check if name is already in use
+      setHasError(true);
+      return;
+    }
     addParameter({ name, type, value: defaultValues[type] });
     setName();
     setType("string");
@@ -36,9 +41,10 @@ export default function AddParameterModal({ isOpen, hideModal, addParameter }) {
         <ModalCloseButton />
         <ModalBody onKeyDown={handleKeyPress}>
           <VStack>
-            <FormControl>
+            <FormControl isInvalid={hasError}>
               <FormLabel ref={initialRef}>Name</FormLabel>
-              <Input value={name} onChange={e => setName(e.target.value)}></Input>
+              <Input value={name} onChange={e => (setName(e.target.value), setHasError(false))}></Input>
+              {hasError ? <FormErrorMessage>Name is required</FormErrorMessage> : null}
             </FormControl>
             <FormControl>
               <FormLabel>Parameter type</FormLabel>
