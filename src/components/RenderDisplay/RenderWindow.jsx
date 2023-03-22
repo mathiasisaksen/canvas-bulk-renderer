@@ -10,8 +10,7 @@ import React, { useEffect, useRef } from 'react'
 
 export default function RenderWindow() {
   const boxShadowColor = useColorModeValue("#00000033", "#ffffff11");
-  const renderEnabled = useUI((state) => state.renderEnabled);
-  console.log('renderEnabled: ', renderEnabled);
+  const isRendererEnabled = useRenderData((state) => state.isRendererEnabled());
   
   return (
     <Flex 
@@ -23,7 +22,7 @@ export default function RenderWindow() {
       sx={{ "::-webkit-scrollbar": { display: "none" } }} 
       boxShadow={`0 0 20px ${boxShadowColor}`}
     >
-      {renderEnabled ? <RenderGrid /> : null}
+      {isRendererEnabled ? <RenderGrid /> : null}
     </Flex>
   )
 }

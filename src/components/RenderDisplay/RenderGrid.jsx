@@ -13,15 +13,13 @@ export default function RenderGrid() {
   const pageNumber = usePageNumber((state) => state.pageNumber);
   const { rendersPerPage } = useConfig((state) => state.getConfig());
 
-  const [renderState, fetchRenderState, rendererIsIdle, fetchIsRendererIdle] = useRenderData((state) => [state.renderState, state.fetchRenderState, state.rendererIsIdle, state.fetchIsRendererIdle]);
-  console.log('renderState: ', renderState);
-  console.log('rendererIsIdle: ', rendererIsIdle);
+  const [renderProgress, fetchRenderProgress, fetchIsRendererIdle, isRendererIdle] = useRenderData((state) => [state.renderProgress, state.fetchRenderProgress, state.fetchIsRendererIdle, state.isRendererIdle()]);
 
-  //useInterval(fetchRenderState, 1000)
+  //useInterval(fetchRenderProgress, 1000)
   useEffect(() => {
     console.log("useeffect");
     intervalRef.current = setInterval(() => {
-      fetchRenderState();
+      fetchRenderProgress();
       fetchIsRendererIdle();
 
       return () => clearInterval(intervalRef.current);
@@ -29,15 +27,15 @@ export default function RenderGrid() {
   }, [pageNumber])
 
   useEffect(() => {
-    if (rendererIsIdle) clearInterval(intervalRef.current);
-  }, [pageNumber, rendererIsIdle]);
+    if (isRendererIdle) clearInterval(intervalRef.current);
+  }, [pageNumber, isRendererIdle]);
 
   const lowerSeed = (pageNumber - 1) * rendersPerPage;
   const upperSeed = lowerSeed + rendersPerPage - 1;
 
   return (
     <Flex w="100%" h="auto" wrap="wrap" justify="flex-start">
-      {range(lowerSeed, upperSeed).map(seed => <RenderBox renderState={renderState[seed]} key={seed} seed={seed} />)}
+      {range(lowerSeed, upperSeed).map(seed => <RenderBox renderProgress={renderProgress[seed]} key={seed} seed={seed} />)}
     </Flex>
   )
 }

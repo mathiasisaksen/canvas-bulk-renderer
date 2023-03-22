@@ -1,3 +1,4 @@
+import useRenderData from '@/store/render-data-store';
 import useUI from '@/store/ui-store';
 import { Flex, HStack, Icon, Slider, SliderFilledTrack, SliderThumb, SliderTrack } from '@chakra-ui/react';
 import React from 'react';
@@ -8,12 +9,12 @@ import { TfiLayoutGrid2Alt, TfiLayoutGrid4Alt } from 'react-icons/tfi'
 // At every get finished-renders, get diff from last time
 
 export default function GridColumnSlider() {
-  const [renderEnabled, gridColumns, setGridColumns] = useUI((state) => [state.renderEnabled, state.gridColumns, state.setGridColumns]);
-
+  const [gridColumns, setGridColumns] = useUI((state) => [state.gridColumns, state.setGridColumns]);
+  const isRendererEnabled = useRenderData((state) => state.isRendererEnabled());
   return (
     <HStack flex={1} justify="center">
       <Icon cursor="pointer" as={TfiLayoutGrid2Alt} onClick={() => setGridColumns(Math.max(0, gridColumns - 1))} />
-      <Slider isDisabled={!renderEnabled} value={gridColumns} min={1} max={15} step={1} w="50%" onChange={value => setGridColumns(value)}>
+      <Slider isDisabled={!isRendererEnabled} value={gridColumns} min={1} max={15} step={1} w="50%" onChange={value => setGridColumns(value)}>
         <SliderTrack>
           <SliderFilledTrack />
         </SliderTrack>

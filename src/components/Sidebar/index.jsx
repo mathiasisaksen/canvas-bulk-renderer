@@ -11,14 +11,15 @@ import usePageNumber from '@/store/use-page-number';
 import useUI from '@/store/ui-store';
 import RenderProgress from '@/components/Sidebar/RenderProgress';
 import useRenderData from '@/store/render-data-store';
+import rs from '@/consts/renderer-states';
+import { renderRange } from '@/api/renderer';
 
 export default function Sidebar() {
   const toast = useToast();
   const [isOpen, setIsOpen] = useState(true);
   const { colorMode, toggleColorMode } = useColorMode();
-  const [renderEnabled, enableRender, disableRender] = useUI((state) => [state.renderEnabled, state.enableRender, state.disableRender]);
-  const setIsRendererIdle = useRenderData((state) => state.setIsRendererIdle);
-  const [renderIsInitializing, setRenderIsInitializing] = useState(false);
+
+  const [rendererState, setRendererState, isRendererEnabled] = useRenderData((state) => [state.rendererState, state.setRendererState, state.isRendererEnabled()]);
   const setPageNumber = usePageNumber((state) => state.set);
 
   let configData = useConfig((state) => state.getConfig());
@@ -26,33 +27,30 @@ export default function Sidebar() {
 
   async function handleStartRender() {
     try {
-      setRenderIsInitializing(true);
+      
+      setRendererState(rs.INITIALIZING);
       await api.post("/api/render/initialize", { configData, parameterPanelData });
 
       const { renderMode, batchSize, startSeed, prerenderPages, rendersPerPage } = configData;
-      console.log('renderMode: ', renderMode);
+
+      setRendererState(rs.RENDERING);
       if (renderMode === "prerender") {
-        await api.post("/api/render/range", { range: [startSeed, startSeed + batchSize - 1] });
+        await renderRange(startSeed, batchSize);
       } else if (renderMode === "continuous") {
-        console.log('[startSeed, startSeed + rendersPerPage*(1 + prerenderPages) - 1]: ', [startSeed, startSeed + rendersPerPage*(1 + prerenderPages) - 1]);
-        await api.post("/api/render/range", { range: [startSeed, startSeed + rendersPerPage*(1 + prerenderPages) - 1] });
+        await renderRange(startSeed, rendersPerPage*(1 + prerenderPages));
       } else {
         toast({ title: "Invalid render mode", status: "error" });
       }
 
-      enableRender();
     } catch (error) {
       const title = error.response?.data?.error ?? "Error when initializing render engine";
-      toast({ title, status: "error" })
-    } finally {
-      setRenderIsInitializing(false);
-      setIsRendererIdle(false);
-
+      toast({ title, status: "error" });
+      setRendererState(rs.CONFIG);
     }
   }
 
   function handleStopRender() {
-    disableRender();
+    setRendererState(rs.CONFIG);
     setPageNumber(1);
   }
 
@@ -82,7 +80,7 @@ export default function Sidebar() {
               </TabPanel>
             </TabPanels>
           </Tabs>
-          <Button isLoading={renderIsInitializing} colorScheme={renderEnabled ? "pink" : "teal"} w="100%" mt="2" mb="10" leftIcon={renderEnabled ? <CloseIcon /> : <StarIcon />} onClick={renderEnabled ? handleStopRender : handleStartRender}>{renderEnabled ? "Stop" : "Render"}</Button>
+          <Button isLoading={rendererState === rs.INITIALIZING} colorScheme={isRendererEnabled ? "pink" : "teal"} w="100%" mt="2" mb="10" leftIcon={isRendererEnabled ? <CloseIcon /> : <StarIcon />} onClick={isRendererEnabled ? handleStopRender : handleStartRender}>{isRendererEnabled ? "Stop" : "Render"}</Button>
           <RenderProgress />
         </Flex>}
     </VStack>

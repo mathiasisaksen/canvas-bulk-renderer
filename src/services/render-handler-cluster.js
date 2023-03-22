@@ -8,7 +8,7 @@ import mod from "@/utils/mod";
 import { Cluster } from "puppeteer-cluster";
 
 const CLUSTER_PARAMS = {
-  concurrency: Cluster.CONCURRENCY_CONTEXT,
+  concurrency: Cluster.CONCURRENCY_BROWSER,
   headless: true,
   monitor: true,
   timeout: 999999999,
@@ -30,7 +30,7 @@ class RenderHandler {
   async initialize(configData) {
     this.configData = configData;
     this.cache = {};
-    this.renderStateBySeed = {};
+    this.renderProgressBySeed = {};
     this.numFinishedRendering = 0;
 
     // Headless puppeteer cluster for rendering
@@ -75,14 +75,14 @@ class RenderHandler {
 
   async executeRender({ seed }) {
     if (!this.isInitialized) await this.initialize(defaultConfig);
-    if (this.cache[seed] || this.renderStateBySeed[seed]) return;
+    if (this.cache[seed] || this.renderProgressBySeed[seed]) return;
 
-    this.renderStateBySeed[seed] = "queued";
+    this.renderProgressBySeed[seed] = "queued";
 
     const { configData, parameterData } = this;
     const renderResult = await this.cluster.execute({ seed, configData, parameterData });
     this.cache[seed] = renderResult;
-    this.renderStateBySeed[seed] = "finished";
+    this.renderProgressBySeed[seed] = "finished";
     this.numFinishedRendering += 1;
   }
 
@@ -94,8 +94,8 @@ class RenderHandler {
     return this.numFinishedRendering;
   }
 
-  getRenderState() {
-    return this.renderStateBySeed;
+  getRenderProgress() {
+    return this.renderProgressBySeed;
   }
 
   isIdle() {

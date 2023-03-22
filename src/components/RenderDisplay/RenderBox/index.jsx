@@ -4,15 +4,15 @@ import useUI from '@/store/ui-store';
 
 import React, { useEffect, useState } from 'react'
 
-export default function RenderBox({ seed, renderState }) {
-  console.log('renderState: ', renderState);
+export default function RenderBox({ seed, renderProgress }) {
+  console.log('renderProgress: ', renderProgress);
   const [data, setData] = useState();
   const gridColumns = useUI((state) => state.gridColumns);
   let isLoading = !data;
   const setAspectRatio = useUI((state) => state.setAspectRatio);
 
   useEffect(() => {
-    if (renderState !== "finished") return;
+    if (renderProgress !== "finished") return;
     const abortController = new AbortController();
     const start = performance.now();
       api.get(`/api/render/${seed}?`, { signal: abortController.signal }).then(({ data }) => {
@@ -25,7 +25,7 @@ export default function RenderBox({ seed, renderState }) {
       abortController.abort();
     }
 
-  }, [seed, renderState, setAspectRatio]);
+  }, [seed, renderProgress, setAspectRatio]);
 
   return (
     <ImageContainer seed={seed} isLoading={isLoading} data={data} gridColumns={gridColumns} />
