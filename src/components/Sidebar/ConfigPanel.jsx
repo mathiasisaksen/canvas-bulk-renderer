@@ -63,7 +63,7 @@ export default function ConfigPanel() {
           :
 
           <FormControl>
-            <ExplainedLabel label="Number of pages to render in advance">Number of pages to render ahead</ExplainedLabel>
+            <ExplainedLabel label="Avoid waiting by rendering upcoming pages in advance">Number of pages to render ahead</ExplainedLabel>
             <FixedInput type="number" placeholder={defaultConfig.prerenderPages} value={prerenderPages ?? ""} onChange={e => setConfigValue("prerenderPages", parseInteger(e.target.value))}></FixedInput>
           </FormControl>}
 

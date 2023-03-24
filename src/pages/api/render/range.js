@@ -1,10 +1,11 @@
-import renderHandler from "@/services/render-handler-cluster";
+import getRenderHandler from "@/services/render-handler-cluster";
 import { createRouter } from 'next-connect';
 
 const router = createRouter();
 
 router.post(async (req, res) => {
   const { range } = req.body;
+  const renderHandler = getRenderHandler();
 
   if (!renderHandler.isInitialized) return res.status(400).send({ error: "Renderer not initialized" });
   
