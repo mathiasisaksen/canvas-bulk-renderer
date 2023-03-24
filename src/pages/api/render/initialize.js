@@ -8,8 +8,6 @@ const router = createRouter();
 router.post(async (req, res) => {
   let { configData, parameterPanelData } = req.body;
 
-  console.log('configData: ', configData);
-
   // Check that specified server is running
   try {
     await api.get(configData.url);

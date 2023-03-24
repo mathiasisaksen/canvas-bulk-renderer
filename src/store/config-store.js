@@ -10,7 +10,11 @@ const useConfig = create(
       config: {},
       setAll: (value) => set(produce(state => { state.config = value })),
       setConfigValue: (name, value) => set(produce(state => {
-        state.config[name] = hasValue(value) ? value : undefined;
+        if (hasValue(value)) {
+          state.config[name] = value;
+        } else {
+          delete state.config[name];
+        }
       })),
       clear: () => set(produce(state => { state.config = {}; })),
       getConfig: () => ({ ...defaultConfig, ...get().config })

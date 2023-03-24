@@ -1,6 +1,4 @@
-import { defaultConfig } from "@/consts/defaults";
 import hasValue from "@/utils/has-value";
-import mod from "@/utils/mod";
 
 // Move all render logic into separate hooks
 // Any render calls, whether bulk or continuous, triggers a procedure where the state is fetched regularly until finished
@@ -30,7 +28,7 @@ class RenderHandler {
   async initialize(configData) {
     this.configData = configData;
     this.cache = {};
-    this.renderProgressBySeed = {};
+    this.rendererProgressBySeed = {};
     this.numFinishedRendering = 0;
 
     // Headless puppeteer cluster for rendering
@@ -38,7 +36,6 @@ class RenderHandler {
 
     // TODO Error handling
     this.cluster.task(async ({ page, data }) => {
-      page.setCacheEnabled(false);
       const { configData, parameterData, seed } = data;
       let { canvasSelector, thumbRes: resolution, url: baseUrl } = configData;
     
@@ -73,42 +70,59 @@ class RenderHandler {
     this.isInitialized = true;
   }
 
-  async executeRender({ seed }) {
-    if (!this.isInitialized) await this.initialize(defaultConfig);
-    if (this.cache[seed] || this.renderProgressBySeed[seed]) return;
+  addRenderToQueue({ seed }) {
+    // Is seed already rendered, or in progress?
+    if (this.cache[seed] || this.rendererProgressBySeed[seed]) return;
 
-    this.renderProgressBySeed[seed] = "queued";
+    this.rendererProgressBySeed[seed] = "queued";
 
     const { configData, parameterData } = this;
-    const renderResult = await this.cluster.execute({ seed, configData, parameterData });
-    this.cache[seed] = renderResult;
-    this.renderProgressBySeed[seed] = "finished";
-    this.numFinishedRendering += 1;
+    this.cluster.execute({ seed, configData, parameterData }).then( renderResult => {
+      if (!this.isInitialized) return;
+      this.cache[seed] = renderResult;
+      this.rendererProgressBySeed[seed] = "finished";
+      this.numFinishedRendering += 1;
+    });
   }
 
   getRenderData({ seed }) {
-    return this.cache[seed];
+    return this.cache ? this.cache[seed] : undefined;
   }
 
   getNumFinishedRendering() {
     return this.numFinishedRendering;
   }
 
-  getRenderProgress() {
-    return this.renderProgressBySeed;
+  getRendererProgress() {
+    return this.rendererProgressBySeed;
   }
 
   isIdle() {
     return !this.cluster || (this.cluster.jobQueue.size() === 0 && this.cluster.workersBusy.length === 0);
   }
 
+  // TODO Rewrite so that a new render handler is created
   async dispose() {
-    if (!this.cluster) return;
+    //if (!this.isInitialized) return;
     await this.cluster.close();
+    /*this.isInitialized = false;
+    delete this.configData;
+    delete this.parameterData;
+    delete this.cache;
+    delete this.rendererProgressBySeed;
+    delete this.numFinishedRendering;
+    delete this.cluster;*/
+    renderHandler = undefined;
   }
 
 }
+let renderHandler;
 
-const renderHandler = new RenderHandler();
+function getRenderHandler() {
+  if (!renderHandler) renderHandler = new RenderHandler();
+  return renderHandler;
+}
 
-export default renderHandler;
+//const renderHandler = new RenderHandler();
+
+export default getRenderHandler;

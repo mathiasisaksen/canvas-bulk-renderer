@@ -3,8 +3,9 @@ import { createRouter } from 'next-connect';
 
 const router = createRouter();
 
-router.get(async (req, res) => {
-  res.send({ rendererProgress: renderHandler.getRendererProgress() });
+router.post(async (req, res) => {
+  await renderHandler.dispose();
+  res.send();
 });
 
 export default router.handler();

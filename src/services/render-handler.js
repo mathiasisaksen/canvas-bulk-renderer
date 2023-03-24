@@ -22,7 +22,6 @@ class RenderHandler {
     this.configData = configData;
 
     const { numRenderInstances } = configData;
-    console.log('numRenderInstances: ', numRenderInstances);
     // Cache for storing data from finished renders
     this.cache = {};
     // Headless puppeteer for rendering
@@ -43,41 +42,34 @@ class RenderHandler {
     let { canvasSelector, thumbRes: resolution, url: baseUrl } = this.configData;
     let { seed } = data;
     
-    let time = performance.now();
     const nInst = this.browsers.length;
     const page = await this.browsers[mod(seed, nInst)].newPage();
-    console.log("Page: ", performance.now() - time);
+
     resolution = isNaN(resolution) ? 450 : parseInt(resolution);
 
     page.setViewport({ width: resolution, height: resolution });
 
     const url = new URL(baseUrl);
     const urlParams = new URLSearchParams({ seed, resolution });
+    const parameterString = hasValue(this.parameterData) ? `&parameters=${encodeURIComponent(JSON.stringify(this.parameterData))}` : "";
+    url.search = urlParams.toString() + parameterString;
 
-    url.search = urlParams.toString() + (hasValue(this.parameterData) ? `&parameters=${encodeURIComponent(JSON.stringify(this.parameterData))}` : "");
-
-    time = performance.now();
     await page.goto(url.toString());
-    console.log("Goto: ", performance.now() - time);
 
-    time = performance.now();
     await page.waitForFunction(() => document.complete === true, {
       polling: 50,
       timeout: 0,
     });
-    console.log("Wait for function: ", performance.now() - time);
 
-    time = performance.now();
     const imageData = await page.evaluate((canvasSelector) => {
       let canvas = document.querySelector(canvasSelector ?? "canvas");
       return canvas.toDataURL();
     }, canvasSelector);      
     
     const imageBase64 = imageData.slice(imageData.indexOf(",") + 1);
-    console.log("Image data: ", performance.now() - time);
     const parameters = await page.evaluate(() => window.parameters);
 
-    const renderResult = { image: imageBase64, parameters, url: `${baseUrl}?seed=${seed}` };
+    const renderResult = { image: imageBase64, parameters, url: `${baseUrl}?seed=${seed}` + parameterString };
     this.cache[data.seed] = renderResult;
     await page.close();
     return renderResult;

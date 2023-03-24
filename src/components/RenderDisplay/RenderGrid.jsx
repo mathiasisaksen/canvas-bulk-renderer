@@ -9,33 +9,34 @@ import React, { useEffect, useRef } from 'react'
 
 export default function RenderGrid() {
   const intervalRef = useRef();
+  const gridRef = useRef();
 
   const pageNumber = usePageNumber((state) => state.pageNumber);
-  const { rendersPerPage } = useConfig((state) => state.getConfig());
+  const { rendersPerPage, startSeed, renderMode, batchSize } = useConfig((state) => state.getConfig());
 
-  const [renderProgress, fetchRenderProgress, fetchIsRendererIdle, isRendererIdle] = useRenderData((state) => [state.renderProgress, state.fetchRenderProgress, state.fetchIsRendererIdle, state.isRendererIdle()]);
-
-  //useInterval(fetchRenderProgress, 1000)
+  const [rendererProgress, fetchRendererUpdate, isRendererIdle] = useRenderData((state) => [state.rendererProgress, state.fetchRendererUpdate, state.isRendererIdle()]);
+  console.log("Loop");
+  //useInterval(fetchRendererProgress, 1000)
   useEffect(() => {
-    console.log("useeffect");
-    intervalRef.current = setInterval(() => {
-      fetchRenderProgress();
-      fetchIsRendererIdle();
+    if (isRendererIdle) {
+      clearInterval(intervalRef.current);
+    } else {
+      intervalRef.current = setInterval(() => {
+        fetchRendererUpdate();
+      }, 1000)  
+    }
+    
+    return () => clearInterval(intervalRef.current);
+  }, [pageNumber, isRendererIdle, fetchRendererUpdate])
 
-      return () => clearInterval(intervalRef.current);
-    }, 1000)
-  }, [pageNumber])
+  const lowerSeed = startSeed + (pageNumber - 1) * rendersPerPage;
+  let upperSeed = lowerSeed + rendersPerPage - 1;
 
-  useEffect(() => {
-    if (isRendererIdle) clearInterval(intervalRef.current);
-  }, [pageNumber, isRendererIdle]);
-
-  const lowerSeed = (pageNumber - 1) * rendersPerPage;
-  const upperSeed = lowerSeed + rendersPerPage - 1;
+  if (renderMode === "prerender") upperSeed = Math.min(upperSeed, startSeed + batchSize - 1);
 
   return (
-    <Flex w="100%" h="auto" wrap="wrap" justify="flex-start">
-      {range(lowerSeed, upperSeed).map(seed => <RenderBox renderProgress={renderProgress[seed]} key={seed} seed={seed} />)}
+    <Flex w="100%" h="auto" wrap="wrap" justify="flex-start" ref={gridRef}>
+      {range(lowerSeed, upperSeed).map(seed => <RenderBox rendererProgress={rendererProgress[seed]} key={seed} seed={seed} />)}
     </Flex>
   )
 }

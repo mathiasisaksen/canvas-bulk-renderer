@@ -5,6 +5,7 @@ import { Button, ButtonGroup, Code, Divider, Flex, IconButton, Modal, ModalConte
 import React, { useEffect, useState } from 'react'
 import { PlusSquareIcon, CopyIcon, CheckIcon, DeleteIcon } from '@chakra-ui/icons';
 import useParameterPanel from '@/store/parameter-panel-store';
+import useRenderData from '@/store/render-data-store';
 
 const defaultParams = [
   { name: "Texture", value: "Grit", type: "string", active: true },
@@ -26,20 +27,21 @@ const defaultParams = [
 
 export default function ParameterPanel() {
   const [showAddModal, setShowAddModal] = useState(false);
-  // To avoid hydration error
   const [internalParameters, setInternalParameters] = useState([]);
   const [parameters, setAll, add, remove, update, clear] = useParameterPanel((state) => [state.parameterPanel, state.setAll, state.add, state.remove, state.update, state.clear]);
-
+  const isRendererEnabled = useRenderData((state) => state.isRendererEnabled());
+  
   const { onCopy, hasCopied } = useClipboard(`const parameters = JSON.parse(decodeURIComponent(new URLSearchParams(window.location.search).get("parameters")))`);
-
+  
+  // To avoid hydration error
   useEffect(() => setInternalParameters(parameters), [parameters]);
 
-  //useEffect(() => setAll(defaultParams), [setAll]);
+  //useEffect(() => setAll(defaultParams));
 
   return (
     <>
     <VStack gap={4} flex={1} h="100%">
-      <ButtonGroup isAttached w="100%" variant="outline">
+      <ButtonGroup isDisabled={isRendererEnabled} isAttached w="100%" variant="outline">
         <Button leftIcon={<PlusSquareIcon />} flex={1} onClick={() => setShowAddModal(true)}>Add parameter</Button>
         <Tooltip label="Clear parameters">
           <IconButton icon={<DeleteIcon />} onClick={clear} />

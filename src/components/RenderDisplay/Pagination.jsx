@@ -41,14 +41,10 @@ export default function Pagination() {
     }
   }
 
-  function handleKeyUp(e) {
-    if (e.key === "Enter") set(internalPage);
-  }
-
   return (
     <HStack h="5rem">
       <IconButton variant="outline" isDisabled={disableLeft} icon={<IoMdArrowDropleft />} onClick={decrement}  />
-      <Input isDisabled={!isRendererEnabled} w={`${inputWidth}ch`} type="number" textAlign="center" p={0} value={internalPage} onChange={e => setInternalPage(parseInt(e.target.value))} onBlur={() => updatePage(internalPage)} onKeyUp={handleKeyUp} />
+      <Input isDisabled={!isRendererEnabled} w={`${inputWidth}ch`} type="number" textAlign="center" p={0} value={internalPage} onChange={e => setInternalPage(parseInt(e.target.value))} onBlur={() => updatePage(internalPage)} onKeyUp={(e) => e.key === "Enter" && updatePage(internalPage)} />
       <IconButton variant="outline" isDisabled={disableRight} icon={<IoMdArrowDropright />} onClick={increment} />
     </HStack>
   )

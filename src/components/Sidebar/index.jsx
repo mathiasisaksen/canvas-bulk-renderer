@@ -9,7 +9,7 @@ import useConfig from '@/store/config-store';
 import useParameterPanel from '@/store/parameter-panel-store';
 import usePageNumber from '@/store/use-page-number';
 import useUI from '@/store/ui-store';
-import RenderProgress from '@/components/Sidebar/RenderProgress';
+import RendererProgress from '@/components/Sidebar/RendererProgress';
 import useRenderData from '@/store/render-data-store';
 import rs from '@/consts/renderer-states';
 import { renderRange } from '@/api/renderer';
@@ -19,7 +19,8 @@ export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(true);
   const { colorMode, toggleColorMode } = useColorMode();
 
-  const [rendererState, setRendererState, isRendererEnabled] = useRenderData((state) => [state.rendererState, state.setRendererState, state.isRendererEnabled()]);
+  const [rendererState, setRendererState, isRendererEnabled, setRendererTimeStarted, disableRenderer] = useRenderData((state) => [state.rendererState, state.setRendererState, state.isRendererEnabled(), state.setRendererTimeStarted, state.disableRenderer]);
+
   const setPageNumber = usePageNumber((state) => state.set);
 
   let configData = useConfig((state) => state.getConfig());
@@ -27,31 +28,37 @@ export default function Sidebar() {
 
   async function handleStartRender() {
     try {
-      
       setRendererState(rs.INITIALIZING);
       await api.post("/api/render/initialize", { configData, parameterPanelData });
+    } catch (error) {
+      const title = error.response?.data?.error ?? "Error when initializing render engine";
+      toast({ title, status: "error" });
+      setRendererState(rs.CONFIG);
+      return;
+    }
 
+    try {
       const { renderMode, batchSize, startSeed, prerenderPages, rendersPerPage } = configData;
 
-      setRendererState(rs.RENDERING);
       if (renderMode === "prerender") {
         await renderRange(startSeed, batchSize);
       } else if (renderMode === "continuous") {
         await renderRange(startSeed, rendersPerPage*(1 + prerenderPages));
       } else {
-        toast({ title: "Invalid render mode", status: "error" });
+        throw new Error("Invalid render mode");
       }
-
+      setRendererState(rs.RENDERING);
+      setRendererTimeStarted();
     } catch (error) {
-      const title = error.response?.data?.error ?? "Error when initializing render engine";
-      toast({ title, status: "error" });
+      toast({ title: error.message, status: "error" });
       setRendererState(rs.CONFIG);
     }
   }
 
   function handleStopRender() {
-    setRendererState(rs.CONFIG);
+    disableRenderer();
     setPageNumber(1);
+
   }
 
   return (
@@ -69,7 +76,7 @@ export default function Sidebar() {
             <TabList>
               <Tab>Configuration</Tab>
               <Tab>Parameters</Tab>
-              <Tab>Display</Tab>
+              <Tab>Filter</Tab>
             </TabList>
             <TabPanels h="60vh" minH="500px">
               <TabPanel px="0" h="100%">
@@ -81,7 +88,7 @@ export default function Sidebar() {
             </TabPanels>
           </Tabs>
           <Button isLoading={rendererState === rs.INITIALIZING} colorScheme={isRendererEnabled ? "pink" : "teal"} w="100%" mt="2" mb="10" leftIcon={isRendererEnabled ? <CloseIcon /> : <StarIcon />} onClick={isRendererEnabled ? handleStopRender : handleStartRender}>{isRendererEnabled ? "Stop" : "Render"}</Button>
-          <RenderProgress />
+          {isRendererEnabled && configData.renderMode === "prerender" ? <RendererProgress /> : null}
         </Flex>}
     </VStack>
   )

@@ -6,9 +6,11 @@ const router = createRouter();
 router.post(async (req, res) => {
   const { seed } = req.query;
   
+  if (!renderHandler.isInitialized) return res.status(400).send({ error: "Renderer not initialized" });
+
   res.status(202).send();
   
-  await renderHandler.executeRender({ seed });
+  await renderHandler.addRenderToQueue({ seed });
 
 });
 
