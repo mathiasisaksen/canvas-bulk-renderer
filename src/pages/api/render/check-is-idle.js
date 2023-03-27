@@ -1,4 +1,4 @@
-import getRenderHandler from "@/services/render-handler-cluster";
+import getRenderHandler from "@/services/render-handler";
 import { createRouter } from 'next-connect';
 
 const router = createRouter();

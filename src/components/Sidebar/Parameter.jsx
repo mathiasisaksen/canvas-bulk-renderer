@@ -21,7 +21,7 @@ export default function Parameter({ parameter, updateParameter, removeParameter 
   let inputElements;
 
   if (type === "string") {
-    inputElements = <Input isDisabled={isRendererEnabled} variant="filled" placeholder='Value' value={value} onChange={e => updateValue(Number(e.target.value))} />
+    inputElements = <Input isDisabled={isRendererEnabled} variant="filled" placeholder='Value' value={value} onChange={e => updateValue(e.target.value)} />
   } else if (type === "number") {
     inputElements = <NumberInput isDisabled={isRendererEnabled} variant="filled" value={value} onChange={updateValue}>
       <NumberInputField />
@@ -37,9 +37,9 @@ export default function Parameter({ parameter, updateParameter, removeParameter 
     </ButtonGroup>
   } else if (type === "range") {
     inputElements = <HStack>
-      <Input isDisabled={isRendererEnabled} variant="filled" placeholder='lower' value={value[0]} onChange={(e) => updateValue([parseFloat(e.target.value), value[1]])} />
+      <Input isDisabled={isRendererEnabled} variant="filled" placeholder='lower' value={value[0]} onChange={(e) => updateValue([e.target.value, value[1]])} />
       <Text>–</Text>
-      <Input isDisabled={isRendererEnabled} variant="filled" placeholder='upper' value={value[1]} onChange={(e) => updateValue([value[0], Number(e.target.value)])} />
+      <Input isDisabled={isRendererEnabled} variant="filled" placeholder='upper' value={value[1]} onChange={(e) => updateValue([value[0], e.target.value])} />
     </HStack>
   } else if (type === "array") {
     inputElements = <ArrayInputField />
@@ -47,7 +47,7 @@ export default function Parameter({ parameter, updateParameter, removeParameter 
 
   return (
     <HStack w="100%" opacity={active ? 1 : 0.5}>
-      <Text mr={2} as="b">{name}</Text>
+      <Text maxW="8rem" mr={2} as="b">{name}</Text>
       <Flex flex={1} justify="flex-end">{inputElements}</Flex>
       <Tooltip label={active ? "Disable" : "Enable"}>
         <IconButton isDisabled={isRendererEnabled} variant="ghost" icon={active ? <FaCircle /> : <FaRegCircle />} onClick={toggleActive} />

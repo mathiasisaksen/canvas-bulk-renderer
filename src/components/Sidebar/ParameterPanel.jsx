@@ -1,24 +1,25 @@
 
-import AddParameterModal from '@/components/Sidebar/AddParameterModal';
+import AddParameterPopover from '@/components/Sidebar/AddParameterPopover';
 import Parameter from '@/components/Sidebar/Parameter';
-import { Button, ButtonGroup, Code, Divider, Flex, IconButton, Modal, ModalContent, ModalOverlay, Text, Tooltip, useClipboard, VStack } from '@chakra-ui/react'
-import React, { useEffect, useState } from 'react'
-import { PlusSquareIcon, CopyIcon, CheckIcon, DeleteIcon } from '@chakra-ui/icons';
+import { ButtonGroup, Code, Divider, IconButton, Text, Tooltip, VStack } from '@chakra-ui/react';
+import { useEffect, useState } from 'react';
+import { DeleteIcon } from '@chakra-ui/icons';
 import useParameterPanel from '@/store/parameter-panel-store';
 import useRenderData from '@/store/render-data-store';
+import useUI from '@/store/ui-store';
 
 const defaultParams = [
-  { name: "Texture", value: "Grit", type: "string", active: true },
-  { name: "Warp", value: 0.1, type: "number", active: true },
-  { name: "HasBg", value: true, type: "boolean", active: true },
-  { name: "Threshold", value: [0.2, 0.6], type: "range", active: true },
+  { name: "paletteName", value: "Vanilla", type: "string", active: true },
+  { name: "stepsize", value: 0.1, type: "number", active: true },
+  { name: "addNoise", value: true, type: "boolean", active: true },
+  { name: "noiseAmount", value: [0.2, 0.6], type: "range", active: true },
   { 
-    name: "Palette", 
+    name: "noiseType", 
     value: [
-      { elementValue: "Vanilla", active: true },
-      { elementValue: "Miscelanea", active: true },
-      { elementValue: "Goofy", active: true },
-      { elementValue: "Yr Immanence", active: false }
+      { elementValue: "perlin", active: true },
+      { elementValue: "simplex", active: true },
+      { elementValue: "worley", active: true },
+      { elementValue: "white", active: false }
     ], 
     type: "array", 
     active: true 
@@ -26,37 +27,34 @@ const defaultParams = [
 ]
 
 export default function ParameterPanel() {
-  const [showAddModal, setShowAddModal] = useState(false);
   const [internalParameters, setInternalParameters] = useState([]);
-  const [parameters, setAll, add, remove, update, clear] = useParameterPanel((state) => [state.parameterPanel, state.setAll, state.add, state.remove, state.update, state.clear]);
+  const [parameters, setAll, remove, update, clear] = useParameterPanel((state) => [state.parameterPanel, state.setAll, state.remove, state.update, state.clear]);
   const isRendererEnabled = useRenderData((state) => state.isRendererEnabled());
-  
-  const { onCopy, hasCopied } = useClipboard(`const parameters = JSON.parse(decodeURIComponent(new URLSearchParams(window.location.search).get("parameters")))`);
+  const [isFirstLoad, setIsFirstLoad] = useUI((state) => [state.isFirstLoad, state.setIsFirstLoad]);
   
   // To avoid hydration error
   useEffect(() => setInternalParameters(parameters), [parameters]);
 
-  //useEffect(() => setAll(defaultParams));
-
+  useEffect(() => {
+    if (!isFirstLoad) return;
+    setAll(defaultParams);
+    setIsFirstLoad(false);
+  }, []);
+https://github.com/mathiasisaksen/canvas-bulk-renderer
   return (
-    <>
-    <VStack gap={4} flex={1} h="100%">
-      <ButtonGroup isDisabled={isRendererEnabled} isAttached w="100%" variant="outline">
-        <Button leftIcon={<PlusSquareIcon />} flex={1} onClick={() => setShowAddModal(true)}>Add parameter</Button>
+    <VStack gap={4} flex={1} h="100%" maxH="60lvh">
+      <ButtonGroup isDisabled={isRendererEnabled} w="100%">
+        <AddParameterPopover/>
         <Tooltip label="Clear parameters">
-          <IconButton icon={<DeleteIcon />} onClick={clear} />
+          <IconButton variant="ghost" icon={<DeleteIcon />} onClick={clear} />
         </Tooltip>
       </ButtonGroup>
       <VStack flex={1} w="100%" gap={1} divider={<Divider />} overflowY="scroll" sx={{ "::-webkit-scrollbar": { display: "none" } }}>
         {internalParameters.map((p, i) => <Parameter key={p.name} parameter={p} updateParameter={value => update(i, value)}removeParameter={() => remove(i)}></Parameter>)}
       </VStack>
       <VStack>
-        <Text mt="5" w="100%" textAlign="center" fontSize="sm">(The parameters are passed in the URL query parameter <Code>parameters</Code>.)</Text>
-        <Button colorScheme={hasCopied ? "teal" : "gray"} leftIcon={hasCopied ? <CheckIcon /> : <CopyIcon />} size="sm" onClick={onCopy}>Copy code for parsing parameters</Button>
+        <Text mt="5" w="100%" textAlign="center" fontSize="sm">(The parameters are passed in the URL query parameter <Code>parameters</Code>, see the {'"'}Help{'"'} section for more info)</Text>
       </VStack>
     </VStack>
-    
-    <AddParameterModal isOpen={showAddModal} hideModal={() => setShowAddModal(false)} addParameter={add} />
-    </>
   )
 }

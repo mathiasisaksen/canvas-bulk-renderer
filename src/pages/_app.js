@@ -1,11 +1,10 @@
-import theme from "@/theme";
-import { ChakraProvider, Flex, useColorModeValue } from "@chakra-ui/react"
+import customTheme from "@/theme";
+import { ChakraProvider, Flex } from "@chakra-ui/react"
 
 export default function App({ Component, pageProps }) {
-  //const gradient = useColorModeValue("linear(to-b, gray.900, gray.800)", "linear(to-b, gray.100, gray.200)")
   return (
-    <ChakraProvider theme={theme}>
-      <Flex w="100%" h="100vh" dir='row' align="center" justify="center" px="5">
+    <ChakraProvider theme={customTheme}>
+      <Flex w="100%" h="100lvh" align="center" justify="center" p="5">
         <Flex w="100%" h="100%">
           <Component {...pageProps} />
         </Flex>

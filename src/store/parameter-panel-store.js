@@ -14,6 +14,7 @@ const useParameterPanel = create(
     remove: (index) => get().modify(state => { state.parameterPanel.splice(index, 1) }),
     update: (index, value) => get().modify(state => { state.parameterPanel[index] = value }),
     clear: () => get().modify(state => { state.parameterPanel = [] }),
+    isNameAvailable: (newName) => !get().parameterPanel.some(({ name }) => newName === name),
 
     getProcessedPanelObject: () => { return processPanelData(get().parameterPanel) }
   }),
@@ -25,15 +26,19 @@ function processPanelData(data) {
   data
     .filter(param => param.active)
     .forEach(param => {
-      const { name, type, value } = param;
-
-      if (type === "string" || type === "number" || type === "boolean" || type === "range") {
-        processedData[name] = value;
+      let { name, type, value } = param;
+      
+      if (type === "string" || type === "boolean") {
+      } else if (type === "number") {
+        value = parseFloat(value);
+      } else if (type === "range") {
+        value = value.map(parseFloat);
       } else if (type === "array") {
-        processedData[name] = value.filter(({ active }) => active).map(({ elementValue }) => elementValue);
+        value = value.filter(({ active }) => active).map(({ elementValue }) => elementValue);
       } else {
         throw new Error(`Unsupported parameter type "${type}"`);
       }
+      processedData[name] = value;
     });
     
   return processedData;

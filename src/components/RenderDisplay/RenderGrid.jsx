@@ -2,7 +2,7 @@ import RenderBox from '@/components/RenderDisplay/RenderBox'
 import useConfig from '@/store/config-store';
 import useRenderData from '@/store/render-data-store';
 import useUI from '@/store/ui-store';
-import usePageNumber from '@/store/use-page-number';
+import usePageNumber from '@/store/page-number-store';
 import range from '@/utils/range';
 import { Flex, useColorModeValue, useInterval } from '@chakra-ui/react'
 import React, { useEffect, useRef } from 'react'

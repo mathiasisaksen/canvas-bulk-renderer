@@ -1,17 +1,21 @@
 
 import GridColumnSlider from '@/components/RenderDisplay/GridColumnSlider';
 import Pagination from '@/components/RenderDisplay/Pagination'
-import RenderBox from '@/components/RenderDisplay/RenderBox'
 import RenderWindow from '@/components/RenderDisplay/RenderWindow';
-import { Box, Flex, HStack, Input, Slider, SliderFilledTrack, SliderThumb, SliderTrack, useColorModeValue, VStack } from '@chakra-ui/react'
+import MenuButton from '@/components/Sidebar/MenuButton';
+import useUI from '@/store/ui-store';
+import { HStack, VStack } from '@chakra-ui/react'
 import React from 'react'
 
 export default function RenderDisplay() {
+  const menuIsOpen = useUI((state) => state.menuIsOpen);
   return (
-    <VStack flex={1} w="100%" justify="space-between" pt="8" ml="3">
+    <VStack flex={1} w="100%" justify="space-between" gap="5" opacity={{ base: menuIsOpen ? 0 : 1, md: 1 }}>
       <RenderWindow />
       <HStack w="100%">
-        <Box flex={1}/>
+        <HStack flex={1}>
+          {menuIsOpen ? null : <MenuButton />}
+        </HStack>
         <Pagination />
         <GridColumnSlider />
       </HStack>

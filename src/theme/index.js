@@ -1,14 +1,27 @@
-import { extendTheme } from "@chakra-ui/react";
+import { extendTheme, getToken, toVarDefinition } from "@chakra-ui/react";
 import { mode } from '@chakra-ui/theme-tools';
+import { theme } from "@chakra-ui/react";
+import components from "@/theme/components";
+import fonts from "@/theme/fonts";
 
-const theme = extendTheme({
+const breakpoints = {
+  ...theme.breakpoints,
+  md: "50em"
+}
+
+const [white, lightYellow, darkBlue, darkGray] = ["#fafafa", "#FFFFF0", "#181826", "#171923"];
+
+const customTheme = extendTheme({
+  components,
+  breakpoints,
+  fonts,
   styles: {
     global: props => ({
       body: {
-        background: mode("linear-gradient(180deg,#fafafa,#F7FAFC)", "linear-gradient(180deg, #0f1216,#04080c)")(props)
+        background: mode(`linear-gradient(180deg,${white},${lightYellow})`, `linear-gradient(180deg, ${darkGray},${darkBlue})`)(props)
       }
     })
   }
 });
 
-export default theme;
+export default customTheme;

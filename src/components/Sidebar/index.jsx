@@ -1,95 +1,78 @@
 
-import React, { useState } from 'react'
-import { RepeatIcon, CloseIcon, MoonIcon, SunIcon, HamburgerIcon, StarIcon } from "@chakra-ui/icons";
-import { Box, Button, Collapse, Fade, Flex, HStack, IconButton, MenuButton, Tab, TabList, TabPanel, TabPanels, Tabs, Tooltip, useColorMode, useToast, VStack } from '@chakra-ui/react';
+import { useState } from 'react';
+import { MoonIcon, SunIcon, QuestionIcon } from "@chakra-ui/icons";
+import { Box, Flex, Heading, HStack, Icon, IconButton, Tab, TabList, TabPanel, TabPanels, Tabs, useColorMode, useColorModeValue, VStack } from '@chakra-ui/react';
 import ConfigPanel from '@/components/Sidebar/ConfigPanel';
 import ParameterPanel from '@/components/Sidebar/ParameterPanel';
-import api from '@/services/api';
 import useConfig from '@/store/config-store';
-import useParameterPanel from '@/store/parameter-panel-store';
-import usePageNumber from '@/store/use-page-number';
 import useUI from '@/store/ui-store';
 import RendererProgress from '@/components/Sidebar/RendererProgress';
 import useRenderData from '@/store/render-data-store';
-import rs from '@/consts/renderer-states';
-import { renderRange } from '@/api/renderer';
+import MenuButton from '@/components/Sidebar/MenuButton';
+import HelpModal from '@/components/Sidebar/HelpModal';
+import SubmitButton from '@/components/Sidebar/SubmitButton';
+import FilterPanel from '@/components/Sidebar/FilterPanel';
+import { TfiLayoutGrid2Alt } from 'react-icons/tfi'
+import { BsFillGridFill } from 'react-icons/bs';
 
 export default function Sidebar() {
-  const toast = useToast();
-  const [isOpen, setIsOpen] = useState(true);
+  const menuIsOpen = useUI((state) => state.menuIsOpen);
+  const [helpIsOpen, setHelpIsOpen] = useState(false);
   const { colorMode, toggleColorMode } = useColorMode();
+  let bg = useColorModeValue("#fafafa", "#0f1216ee");
 
-  const [rendererState, setRendererState, isRendererEnabled, setRendererTimeStarted, disableRenderer] = useRenderData((state) => [state.rendererState, state.setRendererState, state.isRendererEnabled(), state.setRendererTimeStarted, state.disableRenderer]);
+  if (!menuIsOpen) bg = "transparent";
 
-  const setPageNumber = usePageNumber((state) => state.set);
+  const isRendererEnabled = useRenderData((state) => state.isRendererEnabled());
 
-  let configData = useConfig((state) => state.getConfig());
-  const parameterPanelData = useParameterPanel((state) => state.getProcessedPanelObject());
-
-  async function handleStartRender() {
-    try {
-      setRendererState(rs.INITIALIZING);
-      await api.post("/api/render/initialize", { configData, parameterPanelData });
-    } catch (error) {
-      const title = error.response?.data?.error ?? "Error when initializing render engine";
-      toast({ title, status: "error" });
-      setRendererState(rs.CONFIG);
-      return;
-    }
-
-    try {
-      const { renderMode, batchSize, startSeed, prerenderPages, rendersPerPage } = configData;
-
-      if (renderMode === "prerender") {
-        await renderRange(startSeed, batchSize);
-      } else if (renderMode === "continuous") {
-        await renderRange(startSeed, rendersPerPage*(1 + prerenderPages));
-      } else {
-        throw new Error("Invalid render mode");
-      }
-      setRendererState(rs.RENDERING);
-      setRendererTimeStarted();
-    } catch (error) {
-      toast({ title: error.message, status: "error" });
-      setRendererState(rs.CONFIG);
-    }
-  }
-
-  function handleStopRender() {
-    disableRenderer();
-    setPageNumber(1);
-
-  }
+  const configData = useConfig((state) => state.getConfig());
 
   return (
-    <VStack px="4" pt="10" overflow="hidden" maxH="100vh">
-      <Flex w="100%" justify="space-between">
-        <IconButton variant={!isOpen ? "outline" : "solid"} colorScheme="teal" icon={<HamburgerIcon />} onClick={_ => setIsOpen(s => !s)} />
-        {isOpen &&
-          <IconButton icon={colorMode === "dark" ? <SunIcon /> : <MoonIcon />} onClick={toggleColorMode} />
-        }
-      </Flex>
+    <>
+      {!menuIsOpen ? null :
+        <VStack h="100%" w={{ base: "100%", md: "auto" }} px="4" pt="3" maxH="100vh" position={{ base: "absolute", md: "relative" }} right={0} left={0} bottom={0} top={0} zIndex={menuIsOpen ? 100 : 0}>
+          <Flex w="100%" maxW="26rem" h="100%" direction="column">
+            <Flex w="100%" justify="space-between" align="center" mb="2">
+              <Flex align="center" flex={1}>
+                <Icon boxSize="3rem" as={BsFillGridFill} />
+                <Box gap="0px" ml="1">
+                  <Heading size="md">CANVAS BULK</Heading>
+                  <Heading size="md">RENDERER</Heading>
+                </Box>
+              </Flex>
+              <HStack>
+                <MenuButton />
+                <IconButton variant="ghost" icon={<QuestionIcon />} onClick={() => setHelpIsOpen(s => !s)} />
+                <IconButton variant="ghost" icon={colorMode === "dark" ? <SunIcon /> : <MoonIcon />} onClick={toggleColorMode} />
+              </HStack>
+            </Flex>
 
-      {isOpen &&
-        <Flex flex={1} w="26rem" h="auto" direction="column">
-          <Tabs w="100%" isFitted>
-            <TabList>
-              <Tab>Configuration</Tab>
-              <Tab>Parameters</Tab>
-              <Tab>Filter</Tab>
-            </TabList>
-            <TabPanels h="60vh" minH="500px">
-              <TabPanel px="0" h="100%">
-                <ConfigPanel />
-              </TabPanel>
-              <TabPanel px="0" h="100%">
-                <ParameterPanel />
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
-          <Button isLoading={rendererState === rs.INITIALIZING} colorScheme={isRendererEnabled ? "pink" : "teal"} w="100%" mt="2" mb="10" leftIcon={isRendererEnabled ? <CloseIcon /> : <StarIcon />} onClick={isRendererEnabled ? handleStopRender : handleStartRender}>{isRendererEnabled ? "Stop" : "Render"}</Button>
-          {isRendererEnabled && configData.renderMode === "prerender" ? <RendererProgress /> : null}
-        </Flex>}
-    </VStack>
+            <Flex w="100%" flex={1} h="100%" direction="column">
+              <Tabs w="100%" isFitted h="100%" flex={1} display="flex" flexDirection="column">
+                <TabList>
+                  <Tab>Configuration</Tab>
+                  <Tab>Parameters</Tab>
+                  <Tab>Filter</Tab>
+                </TabList>
+                <TabPanels px="0"  maxH="100%">
+                  <TabPanel px="0" h="100%">
+                    <ConfigPanel />
+                  </TabPanel>
+                  <TabPanel px="0" h="100%">
+                    <ParameterPanel />
+                  </TabPanel>
+                  <TabPanel px="0" h="100%">
+                    <FilterPanel />
+                  </TabPanel>
+                </TabPanels>
+              </Tabs>
+              <SubmitButton />
+              {false && isRendererEnabled && configData.renderMode === "prerender" ? <RendererProgress /> : null}
+            </Flex>
+          </Flex>
+
+        </VStack>}
+      <HelpModal isOpen={helpIsOpen} hideModal={() => setHelpIsOpen(false)} />
+    </>
   )
 }

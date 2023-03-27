@@ -9,3 +9,5 @@ export const fetchIsRendererIdle = async () => await api.get("/api/render/check-
 export const fetchNumFinishedRendering = async () => await api.get("/api/render/num-finished");
 
 export const shutDownRenderer = async () => await api.post("/api/render/shutdown");
+
+export const initializeRender = async (data) => await api.post("/api/render/initialize", data);
